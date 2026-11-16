@@ -1,0 +1,19 @@
+{
+  "id": "REQ-WISP-003",
+  "statement": "Wisp must compile code-backed project context without losing Monokl's resolution uncertainty, provenance, scope, or freshness and without allowing incremental or historical heuristics to become alternate truth.",
+  "stakeholder": "A coding agent or reviewer consuming an implementation, review, or architecture briefing.",
+  "why": "A briefing can be concise yet unsafe if it turns candidates into facts, mixes partial refresh generations, serves stale incremental state, or treats Git history as a dependency graph.",
+  "done_when": [
+    "Every code-backed result preserves resolved, ambiguous, unresolved, or external status, candidate identities where present, resolver provenance, precision, scope, and content/workspace identity.",
+    "Readers observe only a complete derived-state publication and a failed refresh leaves the prior complete publication usable.",
+    "Generated incremental change sequences produce the same canonical derived state as a clean rebuild after every step.",
+    "Any Git-history ranking signal remains separately typed, explainable, non-authoritative, and disabled by default until a Prism ablation demonstrates benefit."
+  ],
+  "out_of_scope": [
+    "Implementing parsers, language servers, or a second code index in Wisp",
+    "Treating co-change or ownership as proof of dependency",
+    "Changing the canonical workflow artifact formats",
+    "Mandating a generation table for writes that already publish in one transaction"
+  ],
+  "priority": "high"
+}

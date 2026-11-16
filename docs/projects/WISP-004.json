@@ -1,0 +1,152 @@
+{
+  "goal": "Provide a deterministic, bounded, read-only implementation-context handoff from an explicitly selected plan task or batch and its verified spec.",
+  "architecture": "Define the portable result schema in agent-plugins first, then vendor and validate it in wisp-schema. Put result and Rust error types in wisp-model, direct bounded selected-chain reads and validation in wisp-artifacts, and JSON error adaptation in wisp-cli; do not route this operation through whole-graph discovery or Git status.",
+  "tech_stack": [
+    "Rust 2024",
+    "serde_json",
+    "jsonschema",
+    "camino",
+    "sha2",
+    "Cargo workspace tests",
+    "agent-plugins shared JSON Schema"
+  ],
+  "tasks": [
+    {
+      "id": "T0",
+      "title": "Define the portable implementation-context contract upstream",
+      "files": {
+        "create": ["agent-plugins checkout: shared/schemas/implementation-context@1.json"],
+        "test": []
+      },
+      "steps": [
+        "Add a closed implementation-context@1 JSON Schema with distinct success and error envelopes, stable error codes, exact selected task/criterion projection, source schema IDs and SHA-256 digests, output limit, checks, and gaps.",
+        "Keep the schema independent of Rust private types and do not add a harness consumer or runtime_files reference in this task.",
+        "Validate the schema JSON and run `python3 -m unittest discover -s tests`; expect the upstream repository checks to pass.",
+        "Commit the schema in agent-plugins before copying it so Wisp can record an immutable source revision and byte digest."
+      ],
+      "commit_message": "feat(schema): add implementation context contract",
+      "depends_on": [],
+      "covers_criteria": ["AC-001"]
+    },
+    {
+      "id": "T1",
+      "title": "Vendor and register implementation-context@1",
+      "files": {
+        "create": ["schemas/implementation-context@1.json"],
+        "modify": ["schemas/PROVENANCE.md", "crates/wisp-schema/Cargo.toml", "crates/wisp-schema/src/lib.rs"],
+        "test": ["crates/wisp-schema/src/lib.rs"]
+      },
+      "steps": [
+        "Copy the authored agent-plugins schema byte-for-byte. Record its immutable source revision and digest after the upstream schema change is committed; while it is staged only, mark provenance pending and block consumer/release integration.",
+        "Embed the result schema and add a dedicated output-contract validator; keep this transient response separate from Contract's canonical artifact types and directories.",
+        "Add success and error envelope fixtures and tests that validate both against the pinned schema and check the provenance digest.",
+        "Run `cargo test --offline --locked -p wisp-schema`; expect all contract registry tests to pass."
+      ],
+      "commit_message": "feat(schema): vendor implementation context contract",
+      "depends_on": ["T0"],
+      "covers_criteria": ["AC-001", "AC-011"]
+    },
+    {
+      "id": "T2",
+      "title": "Assemble the selected plan/spec context without graph or Git scans",
+      "files": {
+        "create": ["crates/wisp-artifacts/src/implementation_context.rs"],
+        "modify": ["crates/wisp-model/src/lib.rs", "crates/wisp-artifacts/src/lib.rs"],
+        "test": ["crates/wisp-model/src/lib.rs", "crates/wisp-artifacts/src/implementation_context.rs"]
+      },
+      "steps": [
+        "Add ImplementationSelection with a selector kind and ID, ImplementationContext, and a Rust-native ImplementationContextError aligned with implementation-context@1 while keeping wisp-model independent of other Wisp crates.",
+        "Expose `assemble_implementation_context(workspace: &Utf8Path, plan_path: &Utf8Path, selection: ImplementationSelection, output_limit_bytes: usize) -> Result<ImplementationContext, ImplementationContextError>` from wisp-artifacts.",
+        "Implement a separate selected-chain operation; safely resolve and read only the explicit plan and its declared spec, validate both pinned schemas, identity/path/hash links, uniqueness, task selection, criterion mappings, and declared dependency references.",
+        "Preserve source ordering and exact selected task/criterion fields, report absent modify/test targets as gaps, and never infer dependency completion or execute plan steps.",
+        "Canonicalize paths beneath the workspace before reading; reject traversal, absolute paths, symlink escapes, unsupported hash forms, and inconsistent inputs with typed failures.",
+        "Re-read plan/spec bytes before returning; if observed bytes differ, discard the context and return inputs_changed. Do not call discover_graph, assemble_context, or Git status.",
+        "Read each plan/spec source through an inclusive 1,048,576-byte cap before parsing; apply the same cap to stability rereads and return budget_exceeded when exceeded.",
+        "Use a private test seam for a deterministic plan/spec edit between the initial reads and final stability check; verify inputs_changed rather than relying on a timing race.",
+        "Add temporary-workspace tests for valid selection, link/hash/identity failures, duplicate/missing references, unsafe paths, symlink escape, missing targets, unrelated invalid artifacts, and unchanged inputs/Git status/derived state.",
+        "Run `cargo test --offline --locked -p wisp-model -p wisp-artifacts`; expect the focused model and artifact tests to pass."
+      ],
+      "commit_message": "feat(context): assemble verified implementation context",
+      "depends_on": ["T1"],
+      "covers_criteria": ["AC-003", "AC-004", "AC-005", "AC-006", "AC-009", "AC-010", "AC-011", "AC-012", "AC-013"]
+    },
+    {
+      "id": "T3",
+      "title": "Expose the bounded implementation brief command",
+      "files": {
+        "modify": ["crates/wisp-cli/src/main.rs", "crates/wisp-cli/tests/cli.rs"],
+        "test": ["crates/wisp-cli/tests/cli.rs"]
+      },
+      "steps": [
+        "Add `wisp brief implement` with explicit workspace and plan arguments and mutually exclusive required batch/task selectors.",
+        "Use a 32,768-byte default successful-output limit; enforce the inclusive 256-byte minimum and 1,048,576-byte maximum for --max-bytes, counting the terminating newline and never truncating required context.",
+        "Adapt the Rust-native library error to the pinned implementation-context@1 envelope at the CLI boundary; in JSON mode write one document to stdout and return a nonzero exit for every failure without serializing partial context.",
+        "Add real-binary tests for task selection, repeated/missing/contradictory selectors, output limits, schema-valid JSON, exit status, and stdout/stderr separation; retain library fixtures for path, link, schema, drift, and stability errors.",
+        "Run `cargo test --offline --locked -p wisp-cli --test cli`; expect all CLI integration tests to pass."
+      ],
+      "commit_message": "feat(cli): expose bounded implementation brief",
+      "depends_on": ["T2"],
+      "covers_criteria": ["AC-002", "AC-007", "AC-008", "AC-010", "AC-013"]
+    },
+    {
+      "id": "T4",
+      "title": "Document the handoff boundary and verify the workspace",
+      "files": {
+        "create": ["docs/adr/README.md", "docs/adr/001-rust-api-and-wire-boundary.md", "docs/adr/002-filesystem-snapshot-boundary.md"],
+        "modify": ["docs/architecture/model.json", "docs/02-architecture-and-contracts.md", "docs/04-decisions-and-open-questions.md", "docs/05-implementation-handoff-mvp.md", "README.md", "CONTRIBUTING.md", "CHANGELOG.md", ".github/PULL_REQUEST_TEMPLATE.md", ".github/workflows/ci.yml", "schemas/PROVENANCE.md", "justfile"],
+        "test": ["crates/wisp-schema/src/lib.rs", "crates/wisp-artifacts/src/implementation_context.rs", "crates/wisp-model/src/lib.rs"]
+      },
+      "steps": [
+        "Update the architecture model after the live result abstraction exists; document that this selected-chain operation does not use whole-graph discovery or Git status.",
+        "Update README and architecture/MVP docs to describe the implemented Wisp core, input bounds, platform coverage, API/wire boundary, and separately state that controlled value evaluation remains pending.",
+        "Run `just ci`; expect format check, locked workspace tests, strict Clippy, rustdoc warnings, and cargo-deny to pass. Record any non-failing duplicate-version warnings without suppressing them."
+      ],
+      "commit_message": "docs(wisp): document implementation context handoff",
+      "depends_on": ["T3"],
+      "covers_criteria": ["AC-004", "AC-006", "AC-009"]
+    },
+    {
+      "id": "T5",
+      "title": "Add optional Claude/AGY and Codex consumers with native fallback",
+      "files": {
+        "create": [],
+        "modify": [
+          "agent-plugins checkout: plugins/smith/skills/implement/SKILL.md",
+          "agent-plugins checkout: harnesses/codex/plugins/smith/skills/implement/SKILL.md",
+          "agent-plugins checkout: harnesses/codex/catalog.json",
+          "agent-plugins checkout: plugins/smith/CHANGELOG.md",
+          "agent-plugins checkout: plugins/smith/plugin.json",
+          "agent-plugins checkout: marketplace.json",
+          "agent-plugins checkout: generated Codex marketplace"
+        ],
+        "test": [
+          "agent-plugins checkout: consumer contract tests and repository checks",
+          "real Wisp CLI against an explicit selected-plan success; Wisp CLI failure tests"
+        ]
+      },
+      "steps": [
+        "Keep Wisp optional. Invoke it only when an explicit persisted plan path and exactly one declared batch or task selection are available; do not infer either value.",
+        "Consume only a successful implementation-context@1 result for the requested selection. Treat it as exact artifact context, never as approval, current-code evidence, dependency completion, or permission to execute plan commands.",
+        "On Wisp absence, execution failure, unsupported/malformed output, or a rejected input chain, return to the existing native artifact workflow without changing its policy. In particular, retain Claude/AGY warning-and-gap behavior and Codex stop-on-drift behavior.",
+        "Review native Claude/AGY and Codex counterparts; load the result schema in Codex runtime_files, update Smith release metadata consistently, and regenerate rather than edit generated Codex files.",
+        "Add repository tests that guard both authored skill contracts, untrusted free-text handling, distinct native drift behavior, and Codex schema packaging; exercise a successful explicit selection with the real Wisp CLI. Keep model-level behavior and task outcomes in the later value experiment. Do not add hooks, automatic command execution, or a mandatory Wisp dependency.",
+        "Run the agent-plugins repository checks and record the cross-harness change classification."
+      ],
+      "commit_message": "feat(smith): consume optional Wisp implementation context",
+      "depends_on": ["T1", "T4"],
+      "covers_criteria": ["AC-001", "AC-014"]
+    }
+  ],
+  "batches": [
+    {"batch_id": "B0", "title": "Portable result contract", "target_crate": "agent-plugins schema", "task_ids": ["T0"]},
+    {"batch_id": "B1", "title": "Pinned schema and domain result", "target_crate": "wisp-schema, wisp-model", "task_ids": ["T1"]},
+    {"batch_id": "B2", "title": "Selected-chain assembly", "target_crate": "wisp-artifacts", "task_ids": ["T2"]},
+    {"batch_id": "B3", "title": "CLI and workspace verification", "target_crate": "wisp-cli", "task_ids": ["T3", "T4"]},
+    {"batch_id": "B4", "title": "Optional cross-harness consumption", "target_crate": "agent-plugins Smith", "task_ids": ["T5"]}
+  ],
+  "linked_spec": "WISP-004",
+  "spec_file_path": "docs/specs/WISP-004.json",
+  "plan_file_path": "docs/projects/WISP-004.json",
+  "spec_hash": "sha256:19250061ff5cf6034d96f670a5b71636452a533835c62b3a4139febf8e102a76",
+  "linked_requirement": "REQ-WISP-004"
+}

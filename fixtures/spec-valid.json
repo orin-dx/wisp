@@ -1,0 +1,12 @@
+{
+  "id": "SPEC-001",
+  "purpose": "Exercise Wisp's portable spec artifact flow.",
+  "scope": "CLI black-box fixture behavior.",
+  "non_goals": ["Git commits."],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "criterion": "The candidate validates as spec@1."
+    }
+  ]
+}

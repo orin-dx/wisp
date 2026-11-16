@@ -61,9 +61,25 @@ Git-tracked artifacts + Git state + Monokl code evidence
 - If `.wisp/` is deleted, Wisp must be able to reconstruct it from the workspace.
 - If Wisp is absent, a harness must still be able to read the documented JSON artifacts directly and carry out the portable baseline workflow.
 
-## Next bounded pilot (proposed)
+## Implemented pilot
 
-[Implementation handoff MVP](docs/08-implementation-handoff-mvp.md) proposes a read-only, artifact-only `wisp handoff implement` operation. It checks one selected plan/spec chain and returns exact tasks, criteria, source digests, and gaps. It does not implement the broader context compiler, grant approval, or query Monokl. The brief is not a gated spec or an implemented command.
+[Implementation handoff MVP](docs/08-implementation-handoff-mvp.md) describes the read-only, artifact-only handoff: it checks one selected plan/spec chain and returns exact tasks, criteria, source digests, and gaps. It does not implement the broader context compiler, grant approval, or query Monokl. The controlled value evaluation is still pending, so no benefit is claimed.
+
+## Available in the working tree
+
+The CLI implements these commands; they are not a claim that the acceptance gates have passed:
+
+```bash
+cargo run -p wisp-cli -- artifact validate fixtures/spec-valid.json
+cargo run -p wisp-cli -- artifact persist candidate.json --workspace .
+cargo run -p wisp-cli -- artifact get WISP-001 --workspace .
+cargo run -p wisp-cli -- artifact status WISP-001 --workspace .
+cargo run -p wisp-cli -- brief implement --workspace . --plan docs/projects/WISP-004.json --batch B1
+```
+
+`persist` writes a canonical spec but does not commit it. The handoff command validates the selected plan/spec chain and returns a bounded JSON envelope. Each source is capped at 1 MiB. The Rust library exposes typed selection and error values; the CLI adapts failures to the stable JSON contract. It is read-only and cache-free: it does not run tests, choose batches, grant approval, or query Monokl. Smith may consume a successful packet as artifact context; normal code inspection and verification remain required.
+
+The command is named `brief implement` in the CLI today, while the decision log reserves `brief implement` for the later code-aware briefing and names the pilot `wisp handoff implement`. Reconciling the two is open.
 
 ## Later briefing experience
 
@@ -91,7 +107,7 @@ The full `wisp brief implement` flow above is a later M3 target with code eviden
 | 5 | [Ten-phase build sequence](docs/05-ten-phase-build-plan.md) | Codex's finer-grained ordering within the milestones above |
 | 6 | [Research brief](docs/06-research-brief.md) | The prior art and papers behind D-009 through D-021 |
 | 7 | [Build and release](docs/07-build-and-release.md) | How six separate repositories resolve, build, and publish in dependency order |
-| 8 | [Implementation handoff MVP](docs/08-implementation-handoff-mvp.md) | Proposed artifact-only pilot and its failure cases |
+| 8 | [Implementation handoff MVP](docs/08-implementation-handoff-mvp.md) | Implemented artifact-only pilot, its failure cases, and the pending value gate |
 
 | Also | Covers |
 | :--- | :--- |

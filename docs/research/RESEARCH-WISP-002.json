@@ -1,0 +1,37 @@
+{
+  "question": "Which artifact contracts should Wisp register first, and how should their authority be preserved across harnesses?",
+  "findings": [
+    {
+      "claim": "Wisp currently vendors and recognizes arch-model@1. Agent-plugins PR #13 adds arch-model@2 as an additive schema revision with optional decision_ref on invariants; the PR is open at 6b49c245e6889b3971c7f7af77819913296c464a and its validation check passes.",
+      "evidence": "https://github.com/orin-dx/agent-plugins/pull/13; Wisp crates/wisp-schema/src/lib.rs and schemas/PROVENANCE.md",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The arch-model@2 schema keeps the arch-model@1 required fields and permits decision_ref as an optional string; the PR reports testing that existing @1 documents validate unchanged against @2. A payload without decision_ref does not reveal whether it was authored under @1 or @2.",
+      "evidence": "https://github.com/orin-dx/agent-plugins/pull/13/files; shared/schemas/arch-model@2.json at the PR head",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The core implementation handoff chain is requirement → research → spec → plan, with arch-model as an independently linked architecture artifact; Wisp requires pinned local schemas rather than resolving from a mutable sibling checkout.",
+      "evidence": "docs/02-architecture-and-contracts.md and docs/05-implementation-handoff-mvp.md",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Wisp graph discovery currently iterates once per Contract and reads every JSON file under each contract's canonical directory. Since both architecture-model versions map to docs/architecture/ and legacy documents also validate against @2, registering both versions in that loop would discover model.json twice.",
+      "evidence": "crates/wisp-artifacts/src/lib.rs::discover_graph; crates/wisp-schema/src/lib.rs::Contract::canonical_directory",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The existing spec@1 provenance checksum was mistyped as b4d715c2623a5ede39e787d3c90f972c5a9e760f84275705048ca54664aeaf3e; it has been corrected to the local schema digest 4bd715c2623a5ede39e787d3c90f972c5a9e760f84275705048ca54664aeaf3e. The four Phase 2 workflow-contract checksums match their local files.",
+      "evidence": "shasum -a 256 schemas/spec@1.json schemas/requirement@1.json schemas/research-report@1.json schemas/plan@1.json schemas/arch-model@1.json; schemas/PROVENANCE.md",
+      "confidence": "confirmed"
+    }
+  ],
+  "recommendation": "Adopt arch-model@2 as the preferred architecture-model validator after PR #13 merges, pinning the merged source revision and checksum. Keep the immutable @1 schema/validator available; @2 must accept old-shaped documents unchanged, and absence of decision_ref must never trigger rejection, migration, or a claim that the document was authored as @2. Discover the shared architecture-model path once with the preferred @2 validator so legacy data remains accepted without duplicate graph nodes. Add compatibility fixtures and distinguish the validator used from an artifact's unknown authoring version. Verify every provenance digest, including the corrected spec@1 checksum. Continue to defer arch-audit until graph validation is implemented.",
+  "confidence": "high",
+  "open_questions": [
+    "Should Wisp require callers to select an exact architecture-model schema version, or validate the canonical model with the newest pinned compatible schema while reporting only that validator identity?",
+    "Whether Wisp should later publish an orin-contracts package rather than keep a vendored registry."
+  ],
+  "linked_requirement": "REQ-WISP-002"
+}

@@ -1,0 +1,92 @@
+{
+  "modules": [
+    {
+      "name": "wisp-model",
+      "path": "crates/wisp-model/src/lib.rs",
+      "responsibility": "Owns stable domain identifiers, artifact records, and persistence receipts shared across Wisp layers.",
+      "depends_on": []
+    },
+    {
+      "name": "wisp-schema",
+      "path": "crates/wisp-schema/src/lib.rs",
+      "responsibility": "Owns the embedded, version-pinned artifact contract registry and JSON validation.",
+      "depends_on": ["wisp-model"]
+    },
+    {
+      "name": "wisp-artifacts",
+      "path": "crates/wisp-artifacts/src/lib.rs",
+      "responsibility": "Owns canonical artifact paths, validation-backed persistence and retrieval, graph discovery, local Git-state evidence, and explicit selected plan/spec context assembly.",
+      "depends_on": ["wisp-model", "wisp-schema"]
+    },
+    {
+      "name": "wisp-cli",
+      "path": "crates/wisp-cli/src/main.rs",
+      "responsibility": "Provides the command-line boundary, input handling, JSON results, and human diagnostics by calling the domain crates.",
+      "depends_on": ["wisp-artifacts", "wisp-model", "wisp-schema"]
+    },
+    {
+      "name": "wisp-fixtures",
+      "path": "crates/wisp-fixtures/src/lib.rs",
+      "responsibility": "Provides shared support for black-box fixture tests; it is not a runtime service layer.",
+      "depends_on": ["wisp-model"]
+    }
+  ],
+  "canonical_abstractions": [
+    {
+      "concept": "Path-safe identity for canonical artifacts",
+      "type_or_interface": "wisp_model::ArtifactId",
+      "location": "crates/wisp-model/src/lib.rs",
+      "rationale": "Validate artifact IDs once before they participate in canonical workspace paths."
+    },
+    {
+      "concept": "Identity and canonical location of a supported schema contract",
+      "type_or_interface": "wisp_schema::Contract",
+      "location": "crates/wisp-schema/src/lib.rs",
+      "rationale": "Use the typed contract identity for registry operations instead of passing contract names as unvalidated strings."
+    },
+    {
+      "concept": "Bounded implementation context for an explicit task or batch",
+      "type_or_interface": "wisp_artifacts::assemble_implementation_context",
+      "location": "crates/wisp-artifacts/src/implementation_context.rs",
+      "rationale": "Validate and project only the selected plan/spec chain without whole-graph discovery, Git inspection, or derived-state writes."
+    }
+  ],
+  "invariants": [
+    {
+      "name": "Domain model independence",
+      "rule": "wisp-model must not depend on another Wisp crate.",
+      "rationale": "Shared domain contracts remain usable by every adapter without creating an upward dependency."
+    },
+    {
+      "name": "Pinned offline schema contracts",
+      "rule": "Runtime artifact validation uses embedded, versioned schemas and does not resolve schemas from a mutable external checkout.",
+      "rationale": "Validation must not change based on a mutable external checkout or require network access.",
+      "enforced_by": "The include_str! schema registry in crates/wisp-schema/src/lib.rs embeds schemas at compile time."
+    },
+    {
+      "name": "Wisp does not commit artifacts",
+      "rule": "Artifact persistence may write canonical files but must not create Git commits.",
+      "rationale": "The caller retains control of review and repository history."
+    },
+    {
+      "name": "Implementation context is a selected-chain read",
+      "rule": "Implementation-context assembly reads only the explicitly selected plan, its linked spec, and metadata for declared task paths; it does not discover the artifact graph, inspect Git, write derived state, or imply approval or code completeness.",
+      "rationale": "The first handoff removes deterministic plan/spec checks from the agent loop while keeping its scope bounded and its claims evidence-based.",
+      "decision_ref": "docs/adr/002-filesystem-snapshot-boundary.md",
+      "enforced_by": "assemble_implementation_context in crates/wisp-artifacts/src/implementation_context.rs and its isolated temporary-workspace tests."
+    },
+    {
+      "name": "Keep library errors independent of the JSON envelope",
+      "rule": "The Rust API accepts a typed selector-plus-ID and returns a Rust error; only the CLI maps failures to implementation-context@1 JSON.",
+      "rationale": "Rust callers should not depend on a transport-specific failure envelope.",
+      "decision_ref": "docs/adr/001-rust-api-and-wire-boundary.md",
+      "enforced_by": "ImplementationContextError's Error-bound test and the wisp-cli integration tests."
+    },
+    {
+      "name": "Bound artifact reads before parsing",
+      "rule": "Each selected plan and spec read, including stability rereads, must stop at 1,048,576 bytes plus one detection byte and reject overflow before parsing.",
+      "rationale": "A bounded output does not bound memory used to read and parse an oversized source.",
+      "enforced_by": "read_source_file and source_reader_accepts_the_inclusive_limit_and_rejects_one_byte_over in crates/wisp-artifacts/src/implementation_context.rs."
+    }
+  ]
+}

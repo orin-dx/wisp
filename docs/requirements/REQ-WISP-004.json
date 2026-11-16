@@ -1,0 +1,22 @@
+{
+  "id": "REQ-WISP-004",
+  "statement": "Wisp must assemble a bounded, read-only implementation context from an explicitly selected plan batch or task and its verified governing spec.",
+  "stakeholder": "A developer or coding-agent harness preparing an implementation session.",
+  "why": "Callers repeatedly load and reconcile plans and specs by hand, which spends agent context on deterministic checks and can pass stale or mismatched instructions into implementation.",
+  "done_when": [
+    "A caller can select exactly one declared batch or task from an explicit plan path.",
+    "Wisp verifies the plan and governing spec contracts, identities, paths, criterion mappings, and raw-byte spec hash before returning context.",
+    "The result contains the exact selected implementation steps and governing criteria with source digests and explicit gaps, without private reasoning or inferred approval.",
+    "Unsafe paths, stale or inconsistent artifacts, invalid selections, changed inputs, and oversized required context produce typed failures without a partial success result.",
+    "The operation does not modify canonical artifacts, Git state, or derived state and does not execute commands found in a plan.",
+    "The versioned result can be consumed without assuming that it is approval, current code evidence, or proof that declared files cover all affected code.",
+    "Smith can optionally consume a valid Wisp result while preserving each harness's existing behavior when Wisp is unavailable or rejects the handoff."
+  ],
+  "out_of_scope": [
+    "Monokl code evidence, SQLite, caches, watchers, MCP, embeddings, or model-generated summaries.",
+    "Automatic batch scheduling, prerequisite completion inference, command execution, approval, commits, or artifact repair.",
+    "Changing Claude/AGY or Codex spec-drift policy, making Wisp a required runtime dependency, or claiming task outcomes or reduced context cost without a controlled evaluation."
+  ],
+  "priority": "high",
+  "linked_issues": []
+}

@@ -1,0 +1,37 @@
+{
+  "question": "What must the first Wisp implementation-context handoff verify and preserve to remove repeated mechanical preparation without taking over implementation judgment?",
+  "findings": [
+    {
+      "claim": "The handoff brief limits the first operation to an explicit plan selection, its governing spec, exact task and criterion projection, source digests, explicit gaps, and a byte-bounded result; it excludes code intelligence, persistence, command execution, and approval.",
+      "evidence": "docs/05-implementation-handoff-mvp.md: Outcome, Scope, Result contract, Storage and side effects",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The live CLI currently exposes only spec validate, persist, get, and status operations; there is no brief subcommand or context-package type.",
+      "evidence": "crates/wisp-cli/src/main.rs::Command and crates/wisp-artifacts/src/lib.rs public types",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The existing pinned plan@1 and spec@1 schemas and persisted WISP-001/WISP-002 artifacts provide local examples of the input contracts, while plan cross-links and raw-byte hash verification require behavior beyond JSON Schema validation.",
+      "evidence": "schemas/plan@1.json, schemas/spec@1.json, docs/projects/WISP-001.json, docs/projects/WISP-002.json, docs/specs/WISP-001.json, docs/specs/WISP-002.json",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The workspace has no upstream implementation-context schema or plugin consumer; docs/05 requires defining the versioned result contract in agent-plugins before a consumer depends on it.",
+      "evidence": "docs/05-implementation-handoff-mvp.md: Ownership and handoffs; agent-plugins/shared/schemas",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The shared constitution treats plan/spec drift as a coverage warning, while Codex Smith stops before implementation; a consumer must preserve these native behaviors rather than impose one policy.",
+      "evidence": "agent-plugins/shared/constitution.md: Spec Staleness Detection; agent-plugins/harnesses/codex/plugins/smith/skills/implement/SKILL.md: plan hash check",
+      "confidence": "confirmed"
+    }
+  ],
+  "recommendation": "Specify and gate the read-only Wisp library/CLI operation around pinned plan@1 and spec@1. Define the output contract upstream, preserve exact authored task content and source hashes, and return typed failure instead of truncating or choosing a winner when required inputs disagree. Permit optional consumers only when they accept a valid result and preserve each harness's native behavior on every unavailable or rejected result.",
+  "confidence": "high",
+  "open_questions": [
+    "The upstream implementation-context schema requires a separate source change and immutable revision before Wisp can vendor it.",
+    "Does the optional packet reduce mechanical preparation without increasing duplicate reads or weakening verification?"
+  ],
+  "linked_requirement": "REQ-WISP-004"
+}

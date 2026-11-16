@@ -1,0 +1,58 @@
+{
+  "id": "WISP-003",
+  "purpose": "Define the correctness contract for Wisp's Monokl adapter, derived code-evidence publication, incremental refresh, and optional Git-history ranking signals.",
+  "scope": "Covers typed projection of Monokl code facts into Wisp, derived code-evidence and impact records, complete publication semantics, incremental reconciliation, briefing selection provenance, and evaluation gates for weak history-derived signals.",
+  "non_goals": [
+    "Implementing syntax parsers, semantic resolvers, or language-server lifecycle in Wisp",
+    "Persisting copied Monokl ASTs or building a second authoritative code index",
+    "Treating co-change or ownership as dependency or impact proof",
+    "Requiring generation machinery for an update that fits in one atomic transaction",
+    "Changing WISP-001 or WISP-002 artifact-validation scope"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "criterion": "Every code-backed Wisp record carries the producing operation, analyzer/backend name and version, configuration digest, input content digest, workspace fingerprint, scope completeness, and capability precision supplied by Monokl."
+    },
+    {
+      "id": "AC-002",
+      "criterion": "Resolved, ambiguous, unresolved, and external outcomes remain distinct across the CLI adapter, library adapter, derived store, briefing compiler, and structured output boundaries."
+    },
+    {
+      "id": "AC-003",
+      "criterion": "An ambiguous outcome retains every candidate identity and its diagnostic in the typed result; ranking or budget truncation never changes its status to resolved."
+    },
+    {
+      "id": "AC-004",
+      "criterion": "When Monokl is unavailable, unsupported, timed out, or degraded, Wisp returns an artifact-only briefing with a typed gap and does not synthesize missing code facts.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-005",
+      "criterion": "A derived-state refresh that fits in one SQLite transaction publishes all replacement rows atomically, and a failed transaction leaves the previous complete state readable."
+    },
+    {
+      "id": "AC-006",
+      "criterion": "If a refresh spans multiple transactions or coordinated caches, readers select only the monotonically recorded last complete generation; they never observe staged rows from an incomplete generation."
+    },
+    {
+      "id": "AC-007",
+      "criterion": "For generated no-op, modify, edit-revert, create, delete, rename, configuration-change, and analyzer-version-change sequences, canonical derived state after each incremental step equals a clean rebuild from the resulting canonical inputs."
+    },
+    {
+      "id": "AC-008",
+      "criterion": "Filesystem watcher events are treated as invalidation hints and every refresh reconciles current files and content digests before publication."
+    },
+    {
+      "id": "AC-009",
+      "criterion": "Each Git-history signal records a stable signal kind, repository/window basis, source revision, and selection contribution, and is never represented as a Monokl dependency edge."
+    },
+    {
+      "id": "AC-010",
+      "criterion": "A history-derived signal remains disabled by default until a frozen Prism ablation reports intrinsic relevance, task outcome, false positives, latency, and context cost against an otherwise identical baseline."
+    }
+  ],
+  "linked_requirement": "REQ-WISP-003",
+  "linked_research": "RESEARCH-WISP-003",
+  "spec_file_path": "docs/specs/WISP-003.json"
+}

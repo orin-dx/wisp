@@ -8,3 +8,4 @@ All notable changes to Wisp are documented here. The format follows [Keep a Chan
 
 - Repository setup matching the orin-axi siblings: `FSL-1.1-MIT` license with an `MIT` `wisp-model` crate license, contributing guide, security policy, code of conduct, issue and pull request templates, CI workflow running `just ci`, `rustfmt`/`clippy` configuration.
 - Design contract: architecture and contracts, delivery plan, decision log D-001 through D-027, research brief, build-and-release doc, and the `wisp-contracts` crate spec. See `README.md` for the reading order.
+- WISP-004's selected-plan implementation-context API and CLI, bounded source reads, typed Rust errors, architecture decision records, and pinned-toolchain documentation gates.

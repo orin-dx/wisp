@@ -46,6 +46,8 @@ Decisions made while designing Wisp, and questions that must be resolved before 
 | Q-012 | Whether BLAKE3 earns its place | A measurement, not a literature question | Open |
 | Q-013 | Derivation-route counts as a ranking signal | Cheap to carry, untested; Prism can check it | Open |
 
+Accepted architectural decisions for implementation boundaries are recorded separately in [the ADR index](adr/README.md); this log retains the broader design decisions and open questions.
+
 ## Decisions
 
 ### D-001: Canonical project artifacts remain Git-tracked JSON

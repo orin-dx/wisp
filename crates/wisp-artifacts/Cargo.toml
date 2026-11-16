@@ -1,0 +1,22 @@
+[package]
+name = "wisp-artifacts"
+description = "Canonical artifact discovery, persistence, and implementation-context assembly for Wisp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+camino.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2 = "0.10"
+tempfile = "3"
+thiserror.workspace = true
+wisp-model = { path = "../wisp-model" }
+wisp-schema = { path = "../wisp-schema" }

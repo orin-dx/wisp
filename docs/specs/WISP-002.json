@@ -1,0 +1,91 @@
+{
+  "id": "WISP-002",
+  "purpose": "Define Wisp's pinned, immutable registry for the selected portable workflow schemas and ensure an additive architecture-model revision does not break existing workspace models.",
+  "scope": "Register requirement@1, research-report@1, spec@1, plan@1, arch-model@1, and arch-model@2 with upstream provenance; expose exact contract identities, canonical locations, and validation; discover the architecture model once using the preferred @2 validator while accepting documents that contain only the prior @1 shape.",
+  "non_goals": [
+    "Supporting arch-audit or unrelated workflow contracts.",
+    "Writing or migrating architecture-model documents, backfilling decision_ref, or changing spec-only persistence.",
+    "Resolving decision_ref to prove that an ADR exists, is accepted, or governs the invariant.",
+    "Inferring the schema version under which a model was authored when its payload contains no version marker.",
+    "Replacing the vendored registry with a remote service or contracts package."
+  ],
+  "api_surface": [
+    {
+      "name": "Contract::id",
+      "signature": "Contract::id(self) -> &'static str",
+      "description": "Returns the exact pinned schema identity for a selected registry contract."
+    },
+    {
+      "name": "Contract::canonical_directory",
+      "signature": "Contract::canonical_directory(self) -> &'static str",
+      "description": "Returns the workspace-relative directory used for the selected contract."
+    },
+    {
+      "name": "Contract::from_id",
+      "signature": "Contract::from_id(id: &str) -> Result<Contract, ContractLookupError>",
+      "description": "Resolves an exact registered contract ID without network access and returns a typed error for an unknown ID.",
+      "error_conditions": ["unknown contract ID"]
+    },
+    {
+      "name": "validate_contract",
+      "signature": "validate_contract(contract: Contract, value: &serde_json::Value) -> Result<(), SpecValidationError>",
+      "description": "Validates a parsed document against the selected embedded schema."
+    },
+    {
+      "name": "discover_graph",
+      "signature": "discover_graph(workspace: &Utf8Path) -> Result<ArtifactGraph, ArtifactError>",
+      "description": "Discovers canonical artifacts read-only and returns each artifact with the contract used to validate it."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "criterion": "The repository vendors the selected requirement@1, research-report@1, spec@1, plan@1, arch-model@1, and arch-model@2 schemas byte-for-byte from recorded immutable agent-plugins revisions; each provenance record contains the source path, revision, schema identity, and SHA-256 matching the vendored bytes, and the existing arch-model@1 file is unchanged."
+    },
+    {
+      "id": "AC-002",
+      "criterion": "The registry exposes arch-model@2 with id arch-model@2, canonical directory docs/architecture, and validation through the pinned local schema without network access."
+    },
+    {
+      "id": "AC-003",
+      "criterion": "A document valid under arch-model@1 but lacking decision_ref validates when Contract::ArchModelV2 is selected; discovery reports that validator through DiscoveredArtifact.contract, does not write or migrate the document, and makes no claim about its authoring version."
+    },
+    {
+      "id": "AC-004",
+      "criterion": "Under arch-model@2, decision_ref may be absent or a string; a present non-string decision_ref is rejected by schema validation, while Wisp does not claim that a string reference resolves to an existing or accepted ADR."
+    },
+    {
+      "id": "AC-005",
+      "criterion": "The existing arch-model@1 contract identity and exact validator remain available, and validation behavior for requirement@1, research-report@1, spec@1, plan@1, and arch-model@1 remains unchanged."
+    },
+    {
+      "id": "AC-006",
+      "criterion": "Graph discovery emits exactly one architecture-model node for docs/architecture/model.json and records arch-model@2 as the validator used, whether the valid document includes decision_ref or uses only the prior @1 shape."
+    },
+    {
+      "id": "AC-007",
+      "criterion": "Invalid architecture-model JSON or schema content produces a GraphIssue for the workspace-relative path with field document and no architecture-model node; it does not prevent discovery of independent valid artifacts."
+    },
+    {
+      "id": "AC-008",
+      "criterion": "Registry lookup, schema validation, and graph discovery do not modify canonical artifact bytes or Git state."
+    },
+    {
+      "id": "AC-009",
+      "criterion": "Contract::from_id resolves every registered exact contract ID and returns ContractLookupError::UnknownContract for an unregistered ID; it performs no filesystem writes.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-010",
+      "criterion": "When a document is validated against a selected registered contract but violates that version's schema, validation returns a typed schema-violation diagnostic identifying the selected contract and does not modify the document.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-011",
+      "criterion": "For every registered contract variant, Contract::id returns the schema's exact $id, Contract::canonical_directory returns its documented canonical directory, and validate_contract accepts a valid fixture for that contract."
+    }
+  ],
+  "linked_requirement": "REQ-WISP-002",
+  "linked_research": "RESEARCH-WISP-002",
+  "spec_file_path": "docs/specs/WISP-002.json"
+}

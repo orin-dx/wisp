@@ -1,0 +1,8 @@
+{
+  "id": "SPEC-001",
+  "purpose": "Exercise a validation error.",
+  "scope": "CLI black-box fixture behavior.",
+  "non_goals": ["Git commits."],
+  "acceptance_criteria": [{ "id": "AC-001", "criterion": "This is invalid." }],
+  "unexpected": true
+}

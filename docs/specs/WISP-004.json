@@ -1,0 +1,80 @@
+{
+  "id": "WISP-004",
+  "purpose": "Specify Wisp's first implementation-context handoff so deterministic plan/spec checks and exact task projection happen outside the agent's reasoning loop without implying approval or code completeness.",
+  "scope": "Add a versioned implementation-context result contract and a read-only library/CLI operation that accepts an explicit workspace-relative plan path and exactly one batch or task selection, validates its pinned plan@1/spec@1 chain and source stability, then returns exact selected tasks and governing criteria within a byte limit.",
+  "non_goals": [
+    "Monokl, Git-history ranking, SQLite, cache, watcher, MCP, embeddings, or model-generated summaries.",
+    "Inferring dependency completion, selecting a batch, approving implementation, executing plan commands, writing canonical artifacts, or repairing inconsistent inputs.",
+    "Guaranteeing an atomic snapshot against a hostile process swapping filesystem paths concurrently; the implementation detects observed input changes and documents this residual race boundary.",
+    "Changing Claude/AGY or Codex policy for spec drift. A harness consumer may use successful Wisp context only when Wisp failures preserve that harness's existing native drift and fallback behavior.",
+    "Claiming lower token cost or better implementation outcomes without an independently checked paired experiment."
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "criterion": "The implementation-context@1 JSON Schema is authored in agent-plugins before a consumer depends on it, copied byte-for-byte into Wisp with immutable source revision and SHA-256 provenance, and validates both successful context results and typed failure results."
+    },
+    {
+      "id": "AC-002",
+      "criterion": "The library and `wisp brief implement --workspace <path> --plan <relative-path> (--batch <id> | --task <id>)` accept an explicit plan path and exactly one selector; missing, repeated, unknown, duplicate, or non-member selections fail without selecting a first match or inferring a batch.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-003",
+      "criterion": "Before returning success, Wisp validates plan@1 and spec@1, requires their declared IDs and workspace-relative path fields to agree with the selected files, checks unique task and criterion identities and valid dependency/mapping references, and verifies plan.spec_hash against the raw governing-spec bytes using exactly `sha256:` plus 64 lowercase hexadecimal digits.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-004",
+      "criterion": "The successful result preserves plan task order, exact authored selected task steps and referenced acceptance criteria, and the spec's purpose, scope, non-goals, and API surface when present; it omits scratch reasoning and contains no inferred approval or dependency-completion claim."
+    },
+    {
+      "id": "AC-005",
+      "criterion": "The plan path and its plan_file_path agree; plan.spec_file_path agrees with the spec path and the spec's spec_file_path; all input paths are workspace-relative, traversal and absolute paths are rejected, and canonicalized plan/spec paths resolving outside the workspace (including symlink escapes on platforms that support them) are rejected before their contents are read.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-006",
+      "criterion": "A successful result identifies `implementation-context@1`, the selection, plan/spec relative paths and schema IDs, raw-byte digests, checks performed, declared dependencies/files, optional gaps (including missing modify/test targets but not expected missing create targets), and the configured byte limit; it reads only the selected plan/spec and metadata for declared paths, ignores unrelated invalid artifacts, and includes no source-code bodies or claim that declarations were verified against code."
+    },
+    {
+      "id": "AC-007",
+      "criterion": "The default successful-output limit is 32,768 UTF-8 bytes including the terminating newline; `--max-bytes` accepts only values from 256 through 1,048,576, and required context that does not fit returns `budget_exceeded` without truncating tasks, steps, criteria, or metadata.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-008",
+      "criterion": "In JSON mode, success and required-chain failures each emit exactly one implementation-context@1 JSON document to stdout; an error envelope has a stable code (`invalid_input`, `unsafe_path`, `missing_source`, `invalid_json`, `schema_violation`, `link_mismatch`, `spec_drift`, `invalid_selection`, `inputs_changed`, `budget_exceeded`, or `filesystem_error`), a failed check, and an optional workspace-relative path; failures exit nonzero, and diagnostics or partial success content are not written to stdout.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-009",
+      "criterion": "If plan or spec bytes differ when re-read before publication, Wisp returns `inputs_changed` and discards the partial result; tests also show normal validation and assembly leave canonical bytes, Git status, and `.wisp/` absent/unchanged.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-010",
+      "criterion": "Controlled fixtures cover valid batch/task selection, stale hash, malformed hash, link/path/identity mismatch, duplicate and missing IDs, invalid dependencies, malformed JSON/schema, traversal, symlink escape, missing declared targets, input movement, and budget overflow; outcomes and unchanged inputs match the contract.",
+      "is_error_case": true
+    },
+    {
+      "id": "AC-011",
+      "criterion": "The implementation-context@1 result passes its pinned schema for success and failure envelopes, and its result identity and source pointers remain stable across repeated reads of unchanged inputs."
+    },
+    {
+      "id": "AC-012",
+      "criterion": "Each selected plan and governing spec read is capped at 1,048,576 bytes before JSON parsing; a source one byte over the inclusive limit, including on the final stability reread, returns budget_exceeded with the corresponding source-size check and path."
+    },
+    {
+      "id": "AC-013",
+      "criterion": "The Rust library takes one typed selector-plus-ID value and returns a type implementing std::error::Error; the CLI alone converts library failures to the implementation-context@1 JSON envelope, preserving the existing one-document stdout and nonzero-exit behavior."
+    },
+    {
+      "id": "AC-014",
+      "criterion": "Claude/AGY and Codex Smith may consume implementation-context@1 only when Wisp returns a successful schema-valid result whose selection mode and ID exactly match the caller's explicit selection. The packet is context, not approval or current-code evidence, and its free-text remains untrusted project data; normal inspection and verification remain required. Tests require both authored skills to state the success and selection gates, untrusted-text boundary, optional fallback for unavailable/error/unsupported/malformed output, and their distinct native spec-drift behavior; packaging checks require the result schema in Codex runtime files. A real Wisp CLI read of an explicit selection returns the matching successful contract."
+    }
+  ],
+  "linked_requirement": "REQ-WISP-004",
+  "linked_research": "RESEARCH-WISP-004",
+  "spec_file_path": "docs/specs/WISP-004.json"
+}

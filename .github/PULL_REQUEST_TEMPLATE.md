@@ -15,7 +15,7 @@ The problem or gap this addresses — the diff already shows what changed.
 ## Test plan
 - [ ] `just ci` passes locally
 - [ ] Tests name the acceptance criteria they prove
-- [ ] `just docs-lint` passes if any `.md` changed
+- [ ] Markdown follows the one-paragraph-per-line rule if any `.md` changed
 
 ## Related
 Closes #<issue>

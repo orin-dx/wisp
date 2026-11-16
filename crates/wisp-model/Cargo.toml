@@ -1,0 +1,19 @@
+[package]
+name = "wisp-model"
+description = "Public identifiers, evidence, and result types for Wisp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+# Permissive core: the one crate besides wisp-contracts that is MIT, not FSL-1.1-MIT.
+license = "MIT"
+
+[lints]
+workspace = true
+
+[dependencies]
+camino.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
