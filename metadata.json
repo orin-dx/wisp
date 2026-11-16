@@ -1,0 +1,65 @@
+{
+  "cli_version": "0.13.5-nightly.202611131617.95eabf579",
+  "checkpoint_id": "01M7HH231NMASSEP2EKHRZVSCE",
+  "strategy": "manual-commit",
+  "branch": "feat/wisp-004-implementation-handoff",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "docs/02-architecture-and-contracts.md",
+    "docs/04-decisions-and-open-questions.md",
+    "docs/08-implementation-handoff-mvp.md",
+    "docs/adr/001-rust-api-and-wire-boundary.md",
+    "docs/adr/002-filesystem-snapshot-boundary.md",
+    "docs/adr/README.md",
+    "docs/architecture/model.json",
+    "docs/projects/WISP-001.json",
+    "docs/projects/WISP-002.json",
+    "docs/projects/WISP-004.json",
+    "docs/requirements/REQ-WISP-001.json",
+    "docs/requirements/REQ-WISP-002.json",
+    "docs/requirements/REQ-WISP-003.json",
+    "docs/requirements/REQ-WISP-004.json",
+    "docs/research/RESEARCH-WISP-001.json",
+    "docs/research/RESEARCH-WISP-002.json",
+    "docs/research/RESEARCH-WISP-003.json",
+    "docs/research/RESEARCH-WISP-004.json",
+    "docs/specs/WISP-001.json",
+    "docs/specs/WISP-002.json",
+    "docs/specs/WISP-003.json",
+    "docs/specs/WISP-004.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 1349,
+    "cache_read_tokens": 373295,
+    "output_tokens": 602,
+    "api_call_count": 2
+  },
+  "redaction": {
+    "replacements": 0,
+    "layers": {
+      "betterleaks": 0,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 0,
+      "credentialed_uri": 0,
+      "entropy": 0,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  }
+}
