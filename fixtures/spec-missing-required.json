@@ -1,0 +1,6 @@
+{
+  "id": "SPEC-001",
+  "purpose": "Exercise a validation error.",
+  "non_goals": ["Git commits."],
+  "acceptance_criteria": [{ "id": "AC-001", "criterion": "This is invalid." }]
+}

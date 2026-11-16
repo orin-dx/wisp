@@ -1,0 +1,22 @@
+[package]
+name = "wisp-schema"
+description = "Embedded, immutable artifact schemas and validation for Wisp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+jsonschema.workspace = true
+miette.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+wisp-model = { path = "../wisp-model" }
+
+[dev-dependencies]
+sha2 = "0.10"

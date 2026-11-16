@@ -1,0 +1,9 @@
+$schema: "https://moonrepo.dev/schemas/project.json"
+language: rust
+tasks:
+  build: { script: "cargo build -p wisp-cli" }
+  test: { script: "cargo test -p wisp-cli", deps: [build] }
+  lint: { script: "cargo clippy -p wisp-cli --all-targets -- -D warnings" }
+  format: { script: "cargo fmt --all" }
+  format-check: { script: "cargo fmt --all --check" }
+  audit: { script: "cargo deny check advisories" }
