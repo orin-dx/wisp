@@ -1,0 +1,127 @@
+{
+  "goal": "Deliver a local, portable spec@1 artifact CLI that validates, atomically persists, retrieves, hashes, and reports the local Git state of canonical spec files.",
+  "architecture": "Keep domain contracts in wisp-model, pinned schema loading and validation in wisp-schema, filesystem/Git-bound artifact operations in wisp-artifacts, and argument/output handling in wisp-cli. Moon defines the project graph and Just exposes the build/test/lint/format/audit/CI task surface. The CLI exchanges deterministic JSON and uses no derived database, code-intelligence service, or MCP transport. Fixtures exercise the same public CLI/library behavior against temporary workspaces.",
+  "tech_stack": [
+    "Rust 2024 workspace",
+    "serde and serde_json",
+    "jsonschema draft 2020-12 validator",
+    "camino UTF-8 paths",
+    "sha2 SHA-256",
+    "tempfile atomic-write staging",
+    "clap JSON-oriented CLI",
+    "thiserror typed errors",
+    "insta and tempfile fixtures",
+    "Moon project graph and Just task runner"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Bootstrap the workspace and stable domain contracts",
+      "files": {
+        "create": [
+          "Cargo.toml",
+          "rust-toolchain.toml",
+          "justfile",
+          "deny.toml",
+          ".moon/workspace.yml",
+          "crates/wisp-model/Cargo.toml",
+          "crates/wisp-model/src/lib.rs",
+          "crates/wisp-model/moon.yml",
+          "crates/wisp-schema/Cargo.toml",
+          "crates/wisp-schema/src/lib.rs",
+          "crates/wisp-schema/moon.yml",
+          "crates/wisp-artifacts/Cargo.toml",
+          "crates/wisp-artifacts/src/lib.rs",
+          "crates/wisp-artifacts/moon.yml",
+          "crates/wisp-cli/Cargo.toml",
+          "crates/wisp-cli/src/main.rs",
+          "crates/wisp-cli/moon.yml",
+          "crates/wisp-fixtures/Cargo.toml",
+          "crates/wisp-fixtures/src/lib.rs",
+          "crates/wisp-fixtures/moon.yml"
+        ],
+        "test": ["crates/wisp-model/src/lib.rs", "crates/wisp-schema/src/lib.rs"]
+      },
+      "steps": [
+        "Create a resolver-3 Rust workspace with package metadata, shared lint policy, deny configuration, and the five crates named in WISP-001 AC-001.",
+        "Create Moon workspace/project configuration and a Just task surface modeled on the local Michi and Callisto conventions, with build, test, lint, format, format-check, audit, and CI-equivalent commands.",
+        "Define ArtifactId, ArtifactType::SpecV1, LocalArtifactState, validated artifact, artifact record, persistence receipt, and serializable error DTO contracts in wisp-model.",
+        "Use camino for public workspace-relative paths and thiserror for domain errors; keep models independent of CLI, Tokio, MCP, Monokl, Michi, and SQLite.",
+        "Add focused unit tests proving ArtifactId rejects empty, traversal-like, and path-separator values."
+      ],
+      "commit_message": "feat(model): establish Wisp artifact contracts",
+      "covers_criteria": ["AC-001", "AC-005", "AC-007"]
+    },
+    {
+      "id": "T2",
+      "title": "Pin and validate the spec@1 schema",
+      "files": {
+        "create": ["schemas/spec@1.json", "schemas/PROVENANCE.md"],
+        "modify": ["crates/wisp-schema/src/lib.rs"],
+        "test": ["crates/wisp-schema/src/lib.rs"]
+      },
+      "steps": [
+        "Copy the recorded agent-plugins spec@1 schema byte-for-byte into schemas/spec@1.json and record the source repository path, source revision, schema ID, and SHA-256 in schemas/PROVENANCE.md.",
+        "Embed the schema in wisp-schema at compile time and validate candidate serde_json values with a draft-2020-12 implementation.",
+        "Return typed invalid-JSON, schema-violation, and unsafe-ID errors without formatting them for a terminal.",
+        "Test valid candidate acceptance and malformed JSON, unknown-property, missing-required-property, and unsafe-ID rejection."
+      ],
+      "commit_message": "feat(schema): pin and validate spec v1",
+      "depends_on": ["T1"],
+      "covers_criteria": ["AC-002", "AC-003", "AC-004"]
+    },
+    {
+      "id": "T3",
+      "title": "Implement canonical spec persistence and retrieval",
+      "files": {
+        "modify": ["crates/wisp-artifacts/src/lib.rs"],
+        "test": ["crates/wisp-artifacts/src/lib.rs", "crates/wisp-fixtures/src/lib.rs"]
+      },
+      "steps": [
+        "Resolve every valid spec ID exclusively to docs/specs/<id>.json below a supplied workspace root and set spec_file_path to that relative path before serializing.",
+        "Write deterministic pretty JSON through a same-directory tempfile and atomic rename; calculate SHA-256 only from final bytes read from the target path.",
+        "On get, load raw bytes, parse and revalidate the artifact, calculate the same SHA-256, and classify the path as absent, uncommitted, or clean from local Git status without creating a commit.",
+        "Test successful persist/get round-trip, absent get, validation failure without target creation, write failure without partial target, and uncommitted classification."
+      ],
+      "commit_message": "feat(artifacts): persist and retrieve canonical specs",
+      "depends_on": ["T1", "T2"],
+      "covers_criteria": ["AC-005", "AC-006", "AC-007", "AC-008"]
+    },
+    {
+      "id": "T4",
+      "title": "Expose deterministic artifact CLI commands and fixture coverage",
+      "files": {
+        "modify": ["crates/wisp-cli/src/main.rs", "crates/wisp-fixtures/src/lib.rs", "README.md"],
+        "create": ["fixtures/spec-valid.json", "fixtures/spec-unknown-property.json", "fixtures/spec-missing-required.json"]
+      },
+      "steps": [
+        "Implement wisp artifact validate, persist, and get commands with --workspace and JSON output; map every library success and error to a stable serializable object and nonzero failure exit.",
+        "Add an initial wisp status command that reports the requested spec artifact local state without implying broader workflow support.",
+        "Exercise the public command behavior against fixture workspaces and snapshot only deterministic JSON fields.",
+        "Document the available first-slice commands, direct-JSON portability boundary, and explicit exclusions in the README."
+      ],
+      "commit_message": "feat(cli): expose spec artifact workflow",
+      "depends_on": ["T3"],
+      "covers_criteria": ["AC-003", "AC-004", "AC-005", "AC-007", "AC-008"]
+    }
+  ],
+  "batches": [
+    {
+      "batch_id": "B1",
+      "title": "Core artifact contract",
+      "target_crate": "wisp-model, wisp-schema, wisp-artifacts",
+      "task_ids": ["T1", "T2", "T3"]
+    },
+    {
+      "batch_id": "B2",
+      "title": "CLI and black-box fixtures",
+      "target_crate": "wisp-cli, wisp-fixtures",
+      "task_ids": ["T4"]
+    }
+  ],
+  "linked_spec": "WISP-001",
+  "spec_file_path": "docs/specs/WISP-001.json",
+  "plan_file_path": "docs/projects/WISP-001.json",
+  "spec_hash": "sha256:0bd4755bff5ce440e6c26476edddd6d032795889d4f4f61903971018e2fa77df",
+  "linked_requirement": "REQ-WISP-001"
+}

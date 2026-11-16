@@ -8,23 +8,28 @@ Contributions are welcome. This guide covers the development environment, the in
 
 ### Prerequisites
 
-- **Docs checks**: install `just` and `rg`.
-- **Rust**: the local WISP-001 slice uses Rust 1.96 and edition 2024, but its workspace and toolchain pin are not tracked on this branch.
+- **Tools**: install `just`, `rg`, and `cargo-deny`. `rust-toolchain.toml` pins Rust 1.96 (edition 2024); `.prototools` pins the same versions for proto.
 
 ### Build and test
 
+Use the repository's `justfile` for the same checks as CI. `just --list` shows the available commands.
+
 ```bash
-just            # current docs-only CI check
 just docs-lint  # Markdown house style, fences, decision references, stale names
+just fmt-check
+just test
+just lint
+just doc
+just audit      # cargo-deny
 ```
 
-For local untracked Rust work, run Cargo checks directly. Add the workspace and its checks together when WISP-001 is committed; a passing docs check does not validate code.
+For one crate use `cargo test -p <crate>` or `cargo clippy -p <crate>` directly.
 
 ### Before opening a PR
 
-CI runs `just ci`. Run it locally first; it currently checks tracked documentation only.
+Run `just ci` before opening a PR. It checks Markdown house style, formatting, locked workspace tests, strict Clippy, rustdoc warnings, and dependency policy.
 
-The [implementation handoff MVP](./docs/08-implementation-handoff-mvp.md) is a planning draft. It neither gates WISP-001 nor changes the broader M3 briefing contract. New Rust source needs its own checks in CI when committed.
+The [implementation handoff MVP](./docs/08-implementation-handoff-mvp.md) describes the implemented artifact-only handoff and its remaining value gate; it does not change the broader M3 briefing contract.
 
 ---
 
@@ -38,7 +43,7 @@ The [implementation handoff MVP](./docs/08-implementation-handoff-mvp.md) is a p
 6. **Permissive core stays permissive.** `wisp-contracts` and `wisp-model` are `MIT` and must not depend on any `FSL-1.1-MIT` crate, Tokio, MCP types, Monokl types, SQLite, or CLI formatting.
 7. **Docs are unwrapped and unpadded.** One paragraph per line, no emoji, no filler. `just docs-lint` enforces the mechanical part.
 
-The full list, with the reasons, is in [`AGENTS.md`](./AGENTS.md).
+The full list, with the reasons, is in [`AGENTS.md`](./AGENTS.md). Accepted architectural decisions are indexed in [`docs/adr`](./docs/adr/README.md).
 
 ---
 
@@ -46,6 +51,6 @@ The full list, with the reasons, is in [`AGENTS.md`](./AGENTS.md).
 
 1. **Branch** with a descriptive name: `feat/…`, `fix/…`, `docs/…`, `chore/…`.
 2. **Tests prove criteria.** Every task's tests name the acceptance criteria they cover; mutation testing (`cargo-mutants`) checks the tests would catch real faults.
-3. **Verify locally** with `just ci` and any checks needed for changed code. Expand CI when that code enters the repository.
+3. **Verify locally** with `just ci` and report any check that could not run.
 4. **Conventional commits**: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`. The message explains why; the diff already shows what.
 5. **Cross-repo dependencies** on Monokl and Michi are `git` + `rev` in committed manifests. A local `[patch]` for path development lives in gitignored `.cargo/config.toml` and never in a commit — see [`docs/07-build-and-release.md`](./docs/07-build-and-release.md).

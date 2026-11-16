@@ -1,0 +1,17 @@
+{
+  "id": "REQ-WISP-002",
+  "statement": "Wisp must recognize and validate the portable workflow contracts that connect requirements, research, specs, plans, and architecture models.",
+  "stakeholder": "A coding-agent harness or developer preparing evidence-backed implementation context.",
+  "why": "A spec alone cannot provide trustworthy project context; Wisp needs a version-pinned registry and canonical path rules before it can discover linked artifacts without depending on a particular harness.",
+  "done_when": [
+    "The selected portable contracts are vendored byte-for-byte with source revision and SHA-256 provenance.",
+    "The library exposes contract identity, canonical artifact location, and validation for every selected version.",
+    "An additive upstream schema revision can be adopted without rejecting documents valid under the prior shape or requiring an automatic migration; validation reports the schema used without claiming the document's authoring version when the payload does not identify it.",
+    "When compatible contract versions share a canonical path, discovery validates each file once using the preferred pinned version and emits no duplicate artifact nodes.",
+    "Invalid, unknown, or incompatible contracts produce typed diagnostics without modifying canonical files."
+  ],
+  "out_of_scope": [
+    "Derived database indexing", "Monokl integration", "MCP transport", "Vector retrieval", "Writing non-spec artifacts"
+  ],
+  "priority": "high"
+}

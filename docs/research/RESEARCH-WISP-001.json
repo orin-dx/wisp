@@ -1,0 +1,49 @@
+{
+  "question": "What is the smallest Wisp implementation slice that proves durable, portable artifact handling while preserving the boundaries with agent-plugins, Monokl, and Michi?",
+  "findings": [
+    {
+      "claim": "spec@1 requires id, purpose, scope, non_goals, and acceptance_criteria; it permits a workspace-relative spec_file_path after persistence.",
+      "evidence": "/Users/gabe/Projects/agent-plugins/shared/schemas/spec@1.json",
+      "source": "agent-plugins schema registry at b5e2db19cfd2358fe9dcecfce019eab936817e23",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "The shared workflow convention persists a passed spec at docs/specs/<id>.json, computes downstream freshness from raw file bytes, and treats an uncommitted artifact as not durable across fresh checkouts.",
+      "evidence": "/Users/gabe/Projects/agent-plugins/shared/constitution.md and plugins/scribe/skills/gate-spec/SKILL.md",
+      "source": "agent-plugins at b5e2db19cfd2358fe9dcecfce019eab936817e23",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Monokl is intentionally separate code intelligence with its own content-hash cache; Wisp should not require it for artifact-only operations.",
+      "evidence": "/Users/gabe/Projects/monokl/ARCHITECTURE.md and PRINCIPLES.md",
+      "source": "Monokl design",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Michi is a local, unpublished formatting library; Wisp can defer it because deterministic JSON is sufficient for this slice.",
+      "evidence": "/Users/gabe/Projects/michi/README.md and Cargo.toml",
+      "source": "Michi local workspace",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Atomic temp-file/rename writes and typed error boundaries are established local Rust conventions suitable for Wisp's artifact layer.",
+      "evidence": "/Users/gabe/Projects/callisto/README.md and crates/callisto-manifests/Cargo.toml",
+      "source": "Callisto implementation conventions",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Michi and Callisto both use Cargo workspaces with Moon project graphs and Just as the human-facing task surface; their configurations centralize build, test, lint, formatting, audit, and hook workflows.",
+      "evidence": "/Users/gabe/Projects/michi/justfile, moon.yml, .moon/workspace.yml and /Users/gabe/Projects/callisto/justfile, .moon/workspace.yml",
+      "source": "local Rust workspace conventions",
+      "confidence": "confirmed"
+    }
+  ],
+  "recommendation": "Implement only spec@1 in the first vertical slice: a small Rust workspace with typed model/schema/artifact/CLI crates, a vendored schema pinned to the recorded agent-plugins revision, deterministic path resolution, atomic write, raw-byte SHA-256 receipt, fixture-based CLI tests, and Moon/Just task infrastructure modeled on the local Michi and Callisto conventions. Keep Git mutation, plan handling, cache/database, Monokl, Michi, and MCP outside this slice.",
+  "confidence": "high",
+  "open_questions": [
+    "Whether the long-term schema registry becomes a standalone orin-contracts package or remains a pinned schema bundle is deferred; this slice records provenance for one vendored schema.",
+    "Whether a clean Git working tree is sufficient for persisted status or whether commit reachability must be checked is deferred; the first status classifies only uncommitted versus clean/unknown local state.",
+    "The public Wisp license and MSRV must be selected before publishing; local development may use a provisional workspace policy."
+  ],
+  "linked_requirement": "REQ-WISP-001"
+}

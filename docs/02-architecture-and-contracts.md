@@ -45,7 +45,7 @@ flowchart TB
     style Surfaces fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#064e3b
 ```
 
-The library owns the behavior. The CLI and MCP must not reimplement artifact validation, cache invalidation, Git inspection, ranking, or response shaping.
+The library owns the behavior. The CLI and MCP must not reimplement artifact validation, cache invalidation, Git inspection, ranking, or response shaping. Library failures remain Rust errors; transport adapters map them to their versioned wire contract. The implementation-context boundary is recorded in [ADR-001](adr/001-rust-api-and-wire-boundary.md).
 
 ## 2. Crate topography
 
@@ -328,6 +328,8 @@ Wisp embeds `monokl-core` as a Rust library from the start. There is no CLI-adap
 - **Per-edge precision.** `CapabilityPrecision` on `dependents`/`refs`; ambiguous resolution is a candidate set plus diagnostic, never a single target at lower precision.
 
 A `wisp-service` holds one warm `Workspace`; one-shot CLI opens with `Lifetime::OneShot`.
+
+The implemented `implementation-context@1` operation selects explicit plan tasks and exact criteria without ranking, model summarization, code facts, or persistent derived state. Its contract and failure behavior are in the [MVP brief](05-implementation-handoff-mvp.md). The richer sections below belong to later evidence providers.
 
 ### 5.3 Precision and scope are carried through
 

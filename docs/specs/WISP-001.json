@@ -1,0 +1,69 @@
+{
+  "id": "WISP-001",
+  "purpose": "Define Wisp's first durable artifact vertical slice: local spec@1 validation, canonical persistence, retrieval, and status reporting. The slice proves the portable handoff contract before Wisp introduces derived state or harness-specific interfaces.",
+  "scope": "A Rust workspace exposes a wisp CLI and library layers that load one vendored spec@1 JSON Schema pinned to agent-plugins revision b5e2db19cfd2358fe9dcecfce019eab936817e23; validate a candidate; resolve docs/specs/<id>.json; write it atomically; calculate SHA-256 over the final raw bytes; retrieve it by ID; and report whether its path is absent, uncommitted, or clean in the local Git worktree. Moon defines the crate project graph and Just exposes build, test, lint, format, audit, and CI-equivalent task entry points.",
+  "non_goals": [
+    "Supporting artifact types other than spec@1",
+    "Creating Git commits, branches, tags, remote pushes, or a remote service",
+    "Monokl queries, SQLite state, FTS, vectors, briefing compilation, or impact analysis",
+    "MCP transport, TOON rendering, or a required Michi dependency",
+    "Replacing the source agent-plugins schema registry with a new general schema distribution system"
+  ],
+  "api_surface": [
+    {
+      "name": "validate_spec",
+      "signature": "validate_spec(candidate: &[u8]) -> Result<ValidatedSpec, ArtifactError>",
+      "description": "Parses a candidate JSON document, validates it against the pinned spec@1 schema, and returns the typed artifact and deterministic ID on success.",
+      "error_conditions": ["invalid JSON", "schema violation", "missing or unsafe artifact ID"]
+    },
+    {
+      "name": "persist_spec",
+      "signature": "persist_spec(workspace: &Utf8Path, candidate: &[u8]) -> Result<PersistenceReceipt, ArtifactError>",
+      "description": "Validates a candidate, writes canonical JSON atomically to docs/specs/<id>.json, and returns the final path and SHA-256 raw-byte hash without creating a Git commit.",
+      "error_conditions": ["invalid candidate", "workspace write failure", "atomic rename failure"]
+    },
+    {
+      "name": "get_spec",
+      "signature": "get_spec(workspace: &Utf8Path, id: &ArtifactId) -> Result<ArtifactRecord, ArtifactError>",
+      "description": "Loads and revalidates the canonical spec file, returning its parsed artifact, path, raw-byte hash, and local Git-state classification.",
+      "error_conditions": ["artifact absent", "invalid persisted JSON", "schema violation", "workspace read failure"]
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "criterion": "The repository builds as a Cargo workspace containing separate model, schema, artifacts, CLI, and fixture packages with no Monokl, Michi, SQLite, Tokio, MCP, or vector dependency; Moon project configuration and a Just task surface provide build, test, lint, format, audit, and CI-equivalent commands."
+    },
+    {
+      "id": "AC-002",
+      "criterion": "The repository contains schemas/spec@1.json byte-for-byte identical to agent-plugins shared/schemas/spec@1.json at recorded source revision b5e2db19cfd2358fe9dcecfce019eab936817e23, with provenance documented beside the file."
+    },
+    {
+      "id": "AC-003",
+      "criterion": "wisp artifact validate accepts a schema-valid candidate JSON and emits deterministic JSON identifying artifact_type spec@1 and the candidate ID."
+    },
+    {
+      "id": "AC-004",
+      "criterion": "wisp artifact validate rejects malformed JSON, an unknown property, and a candidate missing a required spec@1 property with a nonzero exit code and machine-readable error object."
+    },
+    {
+      "id": "AC-005",
+      "criterion": "wisp artifact persist writes a valid candidate only to docs/specs/<id>.json beneath the supplied workspace, sets spec_file_path in the persisted artifact to that workspace-relative path, and reports SHA-256 over the final file bytes."
+    },
+    {
+      "id": "AC-006",
+      "criterion": "If validation or writing fails, wisp artifact persist leaves no partial canonical target file and does not report a persistence receipt."
+    },
+    {
+      "id": "AC-007",
+      "criterion": "wisp artifact get <id> revalidates the canonical file and emits deterministic JSON containing its path, parsed artifact, SHA-256, and a local state of absent, uncommitted, or clean."
+    },
+    {
+      "id": "AC-008",
+      "criterion": "Fixture tests cover valid validation, malformed JSON, unknown-property rejection, missing-required-property rejection, atomic persistence/retrieval, absent lookup, and uncommitted status."
+    }
+  ],
+  "linked_requirement": "REQ-WISP-001",
+  "linked_research": "RESEARCH-WISP-001",
+  "spec_file_path": "docs/specs/WISP-001.json"
+}

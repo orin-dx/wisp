@@ -1,0 +1,20 @@
+{
+  "id": "REQ-WISP-001",
+  "statement": "Wisp must validate, persist, retrieve, and report the durable state of a spec@1 artifact without relying on a coding harness or mutable sibling checkout.",
+  "stakeholder": "plugin and coding-agent author",
+  "why": "The shared artifact path is the first portable handoff between Claude, Codex, and other harnesses; it must be reliable before Wisp adds derived cache, code intelligence, or MCP convenience.",
+  "done_when": [
+    "A user can validate a spec@1 candidate against a pinned local schema and receive a machine-readable success or typed failure result.",
+    "A user can persist a valid spec@1 atomically at its deterministic docs/specs/<id>.json path and receive its raw-byte SHA-256 hash.",
+    "A user can retrieve a persisted spec@1 by ID and receive its canonical path, parsed artifact, content hash, and Git commit-state classification.",
+    "The commands work as a local CLI without Monokl, an MCP server, SQLite, vectors, or a running daemon.",
+    "The Rust workspace exposes build, test, lint, format, and CI-equivalent tasks through Moon and Just from its first implementation batch."
+  ],
+  "out_of_scope": [
+    "plan@1 persistence and plan-to-spec freshness checks",
+    "automatic Git commits or remote pushes",
+    "MCP transport, TOON rendering, or Michi integration",
+    "SQLite, embeddings, document retrieval, or Monokl code evidence"
+  ],
+  "priority": "critical"
+}

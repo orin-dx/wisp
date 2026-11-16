@@ -1,0 +1,42 @@
+{
+  "question": "Which ProjectAtlas, Repowise, Serena, and code-intelligence patterns should govern Wisp's Monokl adapter, derived store, and briefing selection?",
+  "findings": [
+    {
+      "claim": "Monokl already owns code facts and Wisp already forbids a rival AST index.",
+      "evidence": "docs/02-architecture-and-contracts.md#monokl-integration",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "ProjectAtlas retains typed resolution outcomes, candidates, provenance, and complete publication state.",
+      "evidence": "https://github.com/styler-ai/ProjectAtlas/blob/main/crates/projectatlas-core/src/graph.rs and https://github.com/styler-ai/ProjectAtlas/blob/main/docs/projectatlas-3-architecture.md",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Repowise separates syntax capture from resolution and documents repeated incremental/full-index divergence defects.",
+      "evidence": "https://github.com/repowise-dev/repowise/blob/main/docs/layers/GRAPH.md and https://github.com/repowise-dev/repowise/blob/main/docs/CHANGELOG.md",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "Repowise keeps co-change separate from dependency centrality because history is noisy and non-structural.",
+      "evidence": "https://github.com/repowise-dev/repowise/blob/main/docs/architecture/graph-algorithms.md",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "A single atomic transaction already supplies complete publication; generation identity is needed only for staged multi-transaction or multi-cache refreshes.",
+      "evidence": "docs/02-architecture-and-contracts.md#multi-process-safety",
+      "confidence": "confirmed"
+    },
+    {
+      "claim": "OpenWiki's grounded-claim invalidation and durable job boundaries are relevant to future Wisp knowledge projections, but its generated-wiki product is not a replacement for bounded typed briefings.",
+      "evidence": "https://github.com/langchain-ai/openwiki#grounded-claims",
+      "confidence": "confirmed"
+    }
+  ],
+  "recommendation": "Preserve Monokl's full resolution and provenance contract, publish complete derived state atomically, require incremental-versus-clean parity, and isolate Git-history signals behind typed provenance and Prism ablations. Keep Wisp free of parser duplication and use generations only when one transaction cannot publish the whole refresh.",
+  "confidence": "high",
+  "open_questions": [
+    "Which, if any, history-derived ranking signal produces benefit after controlling for current structural and artifact evidence?",
+    "Will service refresh require multi-transaction publication, or can the first implementation remain one atomic transaction?"
+  ],
+  "linked_requirement": "REQ-WISP-003"
+}

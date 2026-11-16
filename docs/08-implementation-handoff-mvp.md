@@ -1,6 +1,6 @@
 # Implementation Handoff MVP
 
-**Status:** Planning draft. No spec gate, plan approval, integration test, release, or performance result is implied. Start by turning this brief into reviewed portable artifacts; do not expand WISP-001's existing scope.
+**Status:** Core library, CLI, and optional Claude/AGY and Codex consumption are implemented in the current worktrees; `implementation-context@1` has immutable upstream provenance. Controlled value evaluation remains pending. No release or performance result is implied.
 
 ## Outcome
 
@@ -8,13 +8,13 @@ Given a persisted plan and an explicit batch or task selection, Wisp verifies th
 
 The first value claim is removal of duplicated mechanical preparation and detection of known handoff inconsistencies. Reduced session cost, fewer parses, and better implementation outcomes are hypotheses to measure, not established benefits.
 
-## Scope
+## Delivered core
 
 - Read only the selected plan, its governing spec, and metadata necessary for this handoff.
 - Validate pinned `plan@1` and `spec@1` shapes, identities, paths, references, and raw-byte SHA-256.
 - Project exact selected tasks and criteria with purpose, scope, non-goals, and declared API context when present.
 - Return one versioned JSON result through the library and CLI.
-- Integrate an optional consumer into Smith in both harnesses as a separately reviewed agent-plugins change.
+- Keep the transient response contract separate from canonical artifact schemas and storage.
 
 No SQLite, cache, watcher, daemon, Monokl query, Michi renderer, MCP transport, embedding, hook, arbitrary shell execution, automatic approval, commit, or release belongs in this slice. Do not create every proposed architecture crate; add the operation to the existing model/schema/artifact/CLI layers first.
 
@@ -28,7 +28,7 @@ No SQLite, cache, watcher, daemon, Monokl query, Michi renderer, MCP transport, 
 | Implementation evidence | Smith and project checks | Independent reviewer/gate | Current files, commands, terminal results, and coverage gaps |
 | Experiment record | Fixture runner | Maintainer; later Prism/Lumen | Actual run evidence with fixed inputs, never synthetic success |
 
-Existing project-artifact schemas remain immutable and owned by agent-plugins. Define one new versioned result schema there before writing the plugin consumer; vendor it into Wisp with upstream revision and SHA-256 provenance. Do not introduce a contracts repository, shared package, or duplicate schema definitions for this pilot. `implementation-context@1` is a proposed contract name, not an available artifact.
+Existing project-artifact schemas remain immutable and owned by agent-plugins. `implementation-context@1` is authored there and its Wisp copy is pinned by source revision and byte digest. Keep that revision available in upstream history. Do not introduce a contracts repository, shared package, or duplicate schema definitions for this pilot.
 
 Wisp does not establish that a plan was approved, that prerequisites finished, that declared files cover all affected code, or that commands are safe. The caller checks those conditions using its current workflow and authorization boundary.
 
@@ -38,9 +38,13 @@ Wisp does not establish that a plan was approved, that prerequisites finished, t
 wisp handoff implement --workspace . --plan docs/projects/SPEC-001.json --batch B1
 ```
 
-This command is not implemented. `--plan` is a workspace-relative path, not an inferred plan ID. Require exactly one selector: `--batch` for a declared batch or `--task` for a task in a plan without batch grouping. Preserve the plan's order; do not infer a new batch or scheduler.
+This command is implemented. `--plan` is a workspace-relative path, not an inferred plan ID. Exactly one selector is required: `--batch` for a declared batch or `--task` for one task. The implementation preserves plan order and does not infer a scheduler.
 
-Use `--max-bytes` to bound serialized UTF-8 output, including metadata. Choose and document the default in the gated spec; this is not a token-count guarantee. The initial result has no optional retrieved content to trim: if required context does not fit, return `budget_exceeded` and let the caller choose direct reads or a smaller valid selection. Never shorten governing criteria or ordered steps silently.
+`--max-bytes` defaults to 32,768 and accepts 256 through 1,048,576 bytes. The limit includes the terminating newline and is not a token-count guarantee. Each input plan and spec is also capped at 1,048,576 bytes before parsing and on stability rereads. If an input or required context exceeds its byte limit, the command returns `budget_exceeded`; it never shortens governing criteria or ordered steps. The source cap is more than 120 times the largest selected-plan file and 170 times the largest selected-spec file measured in the current Wisp project fixtures (8,522 and 5,907 bytes); it is a contract limit, not an estimate of future artifact size.
+
+The library takes `ImplementationSelection::Batch(id)` or `ImplementationSelection::Task(id)` and returns a Rust-native `ImplementationContextError`. The CLI alone converts failures to the `implementation-context@1` JSON envelope. This boundary is recorded in [ADR-001](adr/001-rust-api-and-wire-boundary.md). The filesystem guarantee is deliberately limited to detected escapes and observed edits; see [ADR-002](adr/002-filesystem-snapshot-boundary.md).
+
+Current automated CI runs on Ubuntu Linux. Symlink-escape tests run on Unix; macOS and Windows are not yet CI-validated by this MVP.
 
 ## Happy path
 
@@ -88,7 +92,7 @@ Canonicalizing paths and rechecking hashes detect specific failures; neither pro
 
 ## Policy compatibility
 
-Agent-plugins currently has a known conflict: the shared constitution permits a warning on spec drift while Codex Smith stops. The pilot proposes stopping before implementation on a known mismatch. Review the constitution, Claude/AGY Smith, Codex Smith, and Navigator together before adoption; preserve legacy behavior until that explicit policy change is approved. Wisp cannot change a harness policy through an error message.
+Agent-plugins has different native behavior: the shared constitution permits a warning on spec drift while Codex Smith stops. Wisp does not resolve this policy difference. A consumer may use only a successful, schema-valid result for the caller's explicit selection; on absence, execution failure, unsupported or malformed output, or a rejected input chain, it returns to that harness's existing workflow. Claude/AGY retains warning-and-gap behavior; Codex retains stop-on-drift behavior. Wisp errors do not impose a new cross-harness block or authorize bypassing native checks.
 
 Direct fallback uses the same pinned artifact versions, identity/link checks, raw-byte hashing, and selected criteria. It never bypasses a known mismatch. Plans missing pilot prerequisites remain outside its verified claim; a separately documented legacy flow may proceed with gaps according to the approved harness policy. Tool absence loses convenience, not safety semantics.
 
@@ -106,12 +110,12 @@ Fixture definitions and expected checks are versioned. A runner stores each actu
 
 | Batch | Deliverable | Proof |
 | --- | --- | --- |
-| B1: contract and selected-chain library | Pinned wire schema, safe path resolution, shape/link/hash checks, exact projection, typed errors | Table-driven happy/error fixtures; no unrelated graph scan |
-| B2: CLI boundary | Proposed command, selectors, JSON/exit behavior, byte budget, input-movement checks | Real-binary tests; unchanged files/Git state; no partial or oversized success |
-| B3: plugin consumer (agent-plugins) | Optional Smith route, explicit freshness/approval boundaries, policy-equivalent fallback in both harnesses | Representative consumer fixtures and cross-harness change record |
-| B4: small value experiment | Direct-artifact and Wisp-assisted runs on frozen tasks with independent checks | Real execution, terminal results, reproducible run record; missing checks cannot pass |
+| Core contract and selected-chain library | Implemented; source provenance remains incomplete | Schema and library tests; unrelated invalid artifacts ignored; no graph/Git scan |
+| CLI boundary | Implemented; end-to-end success and typed error manually exercised | Keep durable real-binary tests for success, errors, stdout/stderr and untouched inputs |
+| Optional Smith consumer (agent-plugins) | Implemented as T5; does not resolve drift policy | Contract guardrails, fallback parity, explicit trust/approval boundaries, and real CLI selection |
+| Small value experiment | Pending; requires a fixed real task and actual harness run | Direct-artifact comparison, independent checks, and recorded outcomes |
 
-First validate WISP-001's existing foundation and document REQ-WISP-002's registry implementation. Create a new requirement and gated spec/plan for this slice; leave WISP-001's scope, existing schema versions, and WISP-003's later code-evidence correctness requirements intact. New API signatures are design proposals until grounded in the implementation; do not copy guessed signatures into an existing-code API surface.
+WISP-004 now provides the requirement, spec, and plan for this slice; keep WISP-001's scope, existing schema versions, and WISP-003's later code-evidence correctness requirements intact. Update the plan with evidence as implementation progresses, and do not broaden this core into the later architecture roadmap.
 
 No new permanent agent role is needed. The existing implementer owns a cohesive batch, and a reviewer checks its diff and evidence. Parallelize independent fixture work only after the contract is fixed; the primary agent owns interface decisions and reconciliation.
 

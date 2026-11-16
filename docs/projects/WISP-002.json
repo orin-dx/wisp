@@ -1,0 +1,102 @@
+{
+  "goal": "Register the selected portable artifact contracts, adopt arch-model@2 compatibly, and prevent duplicate architecture nodes during discovery.",
+  "architecture": "Keep version identity and embedded schema validation in wisp-schema, with the existing immutable arch-model@1 validator retained for explicit callers. Make wisp-artifacts discover the shared architecture path once with arch-model@2, without migrating or writing its source document; leave CLI persistence spec-only.",
+  "tech_stack": ["Rust 2024", "serde_json", "jsonschema", "Cargo test"],
+  "tasks": [
+    {
+      "id": "T0",
+      "title": "Make the Git status fixture independent of global signing",
+      "files": {
+        "modify": ["crates/wisp-cli/tests/cli.rs"],
+        "test": ["crates/wisp-cli/tests/cli.rs"]
+      },
+      "steps": [
+        "Add `-c commit.gpgsign=false` to the fixture-only Git commit command in status_reports_clean_after_the_canonical_file_is_committed; do not change repository or user Git configuration.",
+        "Run `cargo test --offline -p wisp-cli --test cli status_reports_clean_after_the_canonical_file_is_committed`; expect the test to pass without invoking GPG."
+      ],
+      "commit_message": "test(cli): make fixture commits independent of signing",
+      "depends_on": [],
+      "covers_criteria": []
+    },
+    {
+      "id": "T1",
+      "title": "Vendor arch-model@2 with immutable provenance",
+      "files": {
+        "create": ["schemas/arch-model@2.json"],
+        "modify": ["schemas/PROVENANCE.md"]
+      },
+      "steps": [
+        "Copy shared/schemas/arch-model@2.json byte-for-byte from agent-plugins revision 6b49c245e6889b3971c7f7af77819913296c464a; do not alter schemas/arch-model@1.json.",
+        "Add the source repository, path, immutable revision, schema ID, and the calculated SHA-256 to schemas/PROVENANCE.md.",
+        "Run `jq -e '.\"$id\" == \"arch-model@2\"' schemas/arch-model@2.json`; expect `true`.",
+        "Run `shasum -a 256 schemas/arch-model@2.json`; expect `9a2412cb088a2a43ac5caa35a853de59e163d939c579cf6929c00b3efa1c7da5` and the same value in the provenance record."
+      ],
+      "commit_message": "feat(schema): pin arch-model@2",
+      "depends_on": [],
+      "covers_criteria": ["AC-001"]
+    },
+    {
+      "id": "T2",
+      "title": "Register contracts and typed validation errors",
+      "files": {
+        "modify": ["crates/wisp-schema/Cargo.toml", "crates/wisp-schema/src/lib.rs"],
+        "test": ["crates/wisp-schema/src/lib.rs"]
+      },
+      "steps": [
+        "Add Contract::ArchModelV2 with ID arch-model@2 and canonical directory docs/architecture; embed schemas/arch-model@2.json with include_str! while retaining ArchModelV1 and its exact validator.",
+        "Add Contract::from_id and ContractLookupError::UnknownContract for exact registered IDs; unknown IDs return the typed error without filesystem access.",
+        "Make schema-violation diagnostics report the selected contract ID; preserve existing spec@1 validation behavior and error classification.",
+        "Add a dev-only SHA-256 check that compares all six embedded schema byte digests with their contract-specific records in schemas/PROVENANCE.md.",
+        "Add table-driven tests for every contract variant's exact schema ID, canonical directory, valid document, and provenance digest; test old-shape and decision_ref arch-model@2 documents, non-string decision_ref rejection, unknown-ID rejection, and contract-specific violation messages.",
+        "Run `cargo test --offline -p wisp-schema`; expect all wisp-schema unit tests to pass."
+      ],
+      "commit_message": "feat(schema): register typed contract validation",
+      "depends_on": ["T1"],
+      "covers_criteria": ["AC-002", "AC-004", "AC-005", "AC-009", "AC-010", "AC-011"]
+    },
+    {
+      "id": "T3",
+      "title": "Discover architecture models once with the preferred validator",
+      "files": {
+        "modify": ["crates/wisp-artifacts/src/lib.rs"],
+        "test": ["crates/wisp-artifacts/src/lib.rs"]
+      },
+      "steps": [
+        "Change graph discovery to scan docs/architecture once using ArchModelV2 while keeping ArchModelV1 available through explicit validation.",
+        "Add tests proving an @1-shaped model is returned once as ArchModelV2 without byte changes, an @2 decision_ref model is returned once, and invalid JSON/schema produces one workspace-relative document GraphIssue while independent artifacts remain discoverable.",
+        "Add a temporary-Git-worktree assertion that validation and graph discovery leave canonical bytes and `git status --porcelain` unchanged.",
+        "Run `cargo test --offline -p wisp-artifacts`; expect all artifact tests to pass."
+      ],
+      "commit_message": "fix(artifacts): discover architecture models once",
+      "depends_on": ["T2"],
+      "covers_criteria": ["AC-003", "AC-006", "AC-007", "AC-008"]
+    },
+    {
+      "id": "T4",
+      "title": "Document the active schema registry and run workspace checks",
+      "files": {
+        "modify": ["docs/02-architecture-and-contracts.md"]
+      },
+      "steps": [
+        "Update the current-registry description to list arch-model@1 and arch-model@2, distinguish explicit @1 validation from preferred @2 discovery, and preserve the spec-only persistence statement.",
+        "Run `git diff --check`; expect no whitespace errors. Record that `cargo fmt --all --check` fails on pre-existing formatting differences across untouched files; do not reformat unrelated source as part of this change.",
+        "Run `cargo test --offline --workspace`; expect every unit, CLI, and fixture test to pass.",
+        "Run `cargo clippy --offline --workspace --all-targets -- -D warnings`; expect no warnings or errors.",
+        "Recompute every digest listed in schemas/PROVENANCE.md; expect each value to match its vendored schema bytes."
+      ],
+      "commit_message": "docs(wisp): document compatible architecture contracts",
+      "depends_on": ["T3"],
+      "covers_criteria": []
+    }
+  ],
+  "batches": [
+    {"batch_id": "B0", "title": "Deterministic CLI test baseline", "target_crate": "wisp-cli", "task_ids": ["T0"]},
+    {"batch_id": "B1", "title": "Pinned schema and contract API", "target_crate": "wisp-schema", "task_ids": ["T1", "T2"]},
+    {"batch_id": "B2", "title": "Graph compatibility and workspace verification", "target_crate": "wisp-artifacts", "task_ids": ["T3", "T4"]}
+  ],
+  "linked_spec": "WISP-002",
+  "spec_file_path": "docs/specs/WISP-002.json",
+  "plan_file_path": "docs/projects/WISP-002.json",
+  "spec_hash": "sha256:7abf00dad4b5f28bc7f6adbe11447f847166cb23d200a9b7fb05764d38c42a20",
+  "linked_requirement": "REQ-WISP-002"
+}
