@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01Di8NP7hBpzx7Gjkgp49upm",
+  "agent_id": "a5826247a5f794e1c",
+  "subagent_type": "general-purpose",
+  "task_description": "Summarize wisp-plugins v5 changes",
+  "token_usage": {
+    "input_tokens": 74,
+    "cache_creation_tokens": 157416,
+    "cache_read_tokens": 2984733,
+    "output_tokens": 26598,
+    "api_call_count": 37
+  },
+  "started_at": "2026-11-15T22:25:37.810665-08:00",
+  "completed_at": "2026-11-15T22:30:20.484986-08:00"
+}

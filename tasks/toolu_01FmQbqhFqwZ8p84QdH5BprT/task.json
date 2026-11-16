@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01FmQbqhFqwZ8p84QdH5BprT",
+  "agent_id": "a0ec7bcada1444f24",
+  "subagent_type": "Explore",
+  "task_description": "Test shell availability",
+  "token_usage": {
+    "input_tokens": 4,
+    "cache_creation_tokens": 22706,
+    "cache_read_tokens": 21624,
+    "output_tokens": 1029,
+    "api_call_count": 2
+  },
+  "started_at": "2026-11-15T22:27:09.553787-08:00",
+  "completed_at": "2026-11-15T22:27:22.665582-08:00"
+}

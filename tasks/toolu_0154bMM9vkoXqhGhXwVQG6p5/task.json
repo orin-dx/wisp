@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_0154bMM9vkoXqhGhXwVQG6p5",
+  "agent_id": "aa74f911bfb86683a",
+  "subagent_type": "general-purpose",
+  "task_description": "Compare wisp setup to sibling repos",
+  "token_usage": {
+    "input_tokens": 60,
+    "cache_creation_tokens": 130821,
+    "cache_read_tokens": 2553592,
+    "output_tokens": 25139,
+    "api_call_count": 30
+  },
+  "started_at": "2026-11-15T22:26:30.166907-08:00",
+  "completed_at": "2026-11-15T22:30:22.390222-08:00"
+}

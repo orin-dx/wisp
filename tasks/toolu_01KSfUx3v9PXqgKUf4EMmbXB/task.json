@@ -1,0 +1,15 @@
+{
+  "tool_use_id": "toolu_01KSfUx3v9PXqgKUf4EMmbXB",
+  "agent_id": "af57df79bb9998241",
+  "subagent_type": "general-purpose",
+  "task_description": "Research Callisto upgrade for wisp",
+  "token_usage": {
+    "input_tokens": 66,
+    "cache_creation_tokens": 149403,
+    "cache_read_tokens": 2925679,
+    "output_tokens": 21007,
+    "api_call_count": 33
+  },
+  "started_at": "2026-11-15T22:26:30.166872-08:00",
+  "completed_at": "2026-11-15T22:29:55.217121-08:00"
+}
