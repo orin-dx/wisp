@@ -1,8 +1,14 @@
 # Wisp derived state is always rebuildable from the workspace.
 .wisp/
 
+# Moon task cache is generated and rebuildable.
+.moon/cache/
+
 # Rust build output
 target/
+
+# cargo-mutants output
+mutants.out*/
 
 # macOS metadata
 .DS_Store
